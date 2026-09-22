@@ -1,11 +1,14 @@
 # 🚀 agy-accounts (zh)
 
-**High-Speed Visual Multi-Account Manager & Instant Switcher for Google Antigravity CLI**
+**High-Speed Visual Multi-Account Manager & Instant Switcher for Google Antigravity CLI**  
+*Google Antigravity CLI 极速多账号可视化管理与秒级切换插件*
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Antigravity CLI](https://img.shields.io/badge/Antigravity-CLI%202.0-blue.svg)](https://antigravity.google)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen.svg)]()
 [![GitHub Stars](https://img.shields.io/github/stars/ooks37/agy-accounts?style=social)](https://github.com/ooks37/agy-accounts)
+
+> [English Documentation](#-overview) | [🇨🇳 中文概述与使用指南](#-中文概述-chinese-overview)
 
 ---
 
@@ -121,6 +124,34 @@ zh rm test           # Remove account "test" from local storage
 
 ---
 
+## 🇨🇳 中文概述 (Chinese Overview)
+
+### 💡 为什么需要 agy-accounts？
+在日常使用 **Google Antigravity CLI (`agy`)** 进行高强度 AI 辅助编程时，用户经常需要使用多个 Google 账号（额度号/主力号/工作号）轮流作业。然而官方目前缺少多账号快速热切换机制，传统切换方式需要反复重新网页授权并导致当前的会话上下文（历史聊天、Memory）丢失。
+
+**agy-accounts (`zh`)** 通过以下技术彻底解决痛点：
+- ⚡ **零 AI 响应延迟 (<0.01s)**：纯本地执行，无大模型 Token 损耗，秒级响应。
+- 🔄 **100% 完整接续会话上下文**：切换后自动读取当前活动的 `conversationId` 并携带 `--conversation <ID>` 唤醒 `agy.exe`，历史对话与状态完全接续，工作不中断。
+- 🎯 **双重交互体验**：既支持极简单行命令（`zh 1` / `zh 2`），又支持终端方向键（`↑`/`↓`）原生交互面板与独立弹窗（`zh ui`）。
+- 🌐 **全链路中文与中英文双语**：中文指令（`zh 切换 1`、`zh 添加`、`zh 状态`、`zh 帮助`）、中文别名（`主账号`、`公司`）全面支持，边框基于 East Asian Width 算法像素级对其，拒绝乱码。
+- ➕ **一键自动添加新账号 (`zh add`)**：自动重置临时凭据并弹出登录，捕获授权后自动写库，10 秒内即可录入新号。
+- 🔐 **系统原生钥匙串级安全**：直接与 Windows 凭据管理器 (`gemini:antigravity`) 对接，安全加密存放于本地。
+
+### ⌨️ 常用中文指令速查表
+
+| 中文指令 | 对应英文指令 | 功能描述 |
+| :--- | :--- | :--- |
+| `zh 1` 或 `zh 切换 1` | `zh 1` / `zh switch 1` | 秒级切换到 1 号账号，自动重载并接续上下文 |
+| `zh 窗口` | `zh ui` | 弹出原生方向键（`↑`/`↓`/`Enter`）交互选择小窗口 |
+| `zh 添加 [别名]` | `zh add [alias]` | 一键自动添加账号（唤起浏览器登录并存库） |
+| `zh 保存 <别名>` | `zh save <alias>` | 保存当前活跃账号为指定别名（支持中文） |
+| `zh 状态` | `zh whoami` | 查看当前活跃邮箱、Token 过期时间与鉴权方式 |
+| `zh 重载` | `zh reload` | 一键重新载入当前会话，上下文完整保留 |
+| `zh 删除 <别名>` | `zh rm <alias>` | 删除已保存的指定账号凭据 |
+| `zh 帮助` / `zh 列表` | `zh help` / `zh list` | 查看可视化状态看板与已保存账号列表 |
+
+---
+
 ## 🛠️ Architecture & Under the Hood
 
 1. **Credential Hot-Swapping**:
@@ -134,12 +165,12 @@ zh rm test           # Remove account "test" from local storage
 
 ---
 
-## 🤝 Attribution & Acknowledgements
+## 🤝 Attribution & Acknowledgements (项目致谢)
 
 This project builds upon ideas and designs from the community. Special thanks and attribution to:
 
-- **[pjpv/zcode-switch](https://github.com/pjpv/zcode-switch)**: The core UI layout philosophy, account library storage pattern, and instant switching ergonomics were inspired by `pjpv`'s `zcode-switch` / `Z·SWITCH` architecture.
-- **[lllopic/agy-hud](https://github.com/lllopic/agy-hud)**: The statusline ecosystem and integration hooks that allow real-time awareness of account changes in Antigravity CLI.
+- **[pjpv/zcode-switch](https://github.com/pjpv/zcode-switch)**: The core UI layout philosophy, account library storage pattern, and instant switching ergonomics were inspired by `pjpv`'s `zcode-switch` / `Z·SWITCH` architecture. *(核心交互灵感与账号库管理架构借鉴致谢)*
+- **[lllopic/agy-hud](https://github.com/lllopic/agy-hud)**: The statusline ecosystem and integration hooks that allow real-time awareness of account changes in Antigravity CLI. *(状态栏生态整合与热感知致谢)*
 - **[Google Antigravity](https://antigravity.google)**: The powerful agentic AI development platform.
 
 ---
