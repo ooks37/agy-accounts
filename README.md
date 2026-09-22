@@ -1,133 +1,150 @@
 # 🚀 agy-accounts (zh)
 
-**Google Antigravity CLI 极速多账号可视化管理与秒级切换插件**  
-*Native Visual Multi-Account Manager & Instant Switcher for Antigravity CLI*
+**High-Speed Visual Multi-Account Manager & Instant Switcher for Google Antigravity CLI**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Antigravity CLI](https://img.shields.io/badge/Antigravity-CLI%202.0-blue.svg)](https://antigravity.google)
 [![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-brightgreen.svg)]()
+[![GitHub Stars](https://img.shields.io/github/stars/ooks37/agy-accounts?style=social)](https://github.com/ooks37/agy-accounts)
 
 ---
 
-## 🌟 核心特性 (Key Features)
+## 💡 Overview
 
-- ⚡ **零 AI 依赖，本地极速执行 (<0.01s)**：输入指令瞬间完成切换，无需等待大模型 Token 生成与响应。
-- 🔄 **自动重载并接续上下文 (Context Preservation)**：账号切换后自动重载 `agy` 会话，**保留全部对话历史、记忆与上下文**（基于 `--conversation <ID>` 原生接续），直接无缝接力当前任务。
-- 🎯 **方向键原生交互面板 (Arrow-Key Selector)**：支持方向键 `↑` / `↓` 自由浏览选择，回车即切；在 `agy` 会话中输入 `zh ui` 可秒级唤出轻量独立交互窗口。
-- 🌐 **全链路中文与中英双语支持**：中文指令（`zh 切换 1`、`zh 添加`、`zh 帮助`、`zh 状态`）、中文账号别名（如 `主账号`、`公司`）均完美支持，边框采用 East Asian Width 算法像素级对齐，杜绝乱码与错位。
-- ➕ **一键自动添加新账号 (`zh add`)**：全自动清空临时钥匙串、唤起浏览器登录授权并回捕凭据存库，10 秒内即可将新 Google 账号纳入账号池。
-- 🔐 **系统原生凭据级安全**：直接与 Windows 凭据管理器 (`gemini:antigravity`) / Keyring 对接，本地加密存储，绝不经过任何第三方服务器。
+**agy-accounts** (`zh`) is a native, zero-latency multi-account manager and switcher designed specifically for **Google Antigravity CLI (`agy`)**.
+
+Switching Google accounts in terminal-based AI workflows typically requires re-authenticating through the browser, losing active conversational state, or relying on LLM tool-calling overhead. **agy-accounts** solves this with:
+1. **Zero-AI Dependency**: Direct local binary execution (<0.01s).
+2. **Context Preservation**: Seamlessly hot-reloads the active session with `--conversation <ID>`, preserving full conversation history, agent memory, and workspace state.
+3. **Dual Interaction Modes**: Direct one-line command switching (`zh 1`, `zh 2`) and native interactive arrow-key selector with popup support (`zh ui`).
+4. **Full Internationalization**: Comprehensive English and Chinese command support with East Asian Width (EAW) monospace pixel-perfect table alignment.
 
 ---
 
-## 🖥️ 终端效果展示 (Preview)
+## 🌟 Key Features
+
+- ⚡ **Zero-AI Execution (<10ms)**: Executes natively without querying LLMs or waiting for token generation.
+- 🔄 **Context-Preserving Auto-Reload**: Automatically hooks into `history.jsonl` to extract active `conversationId`, seamlessly continuing your exact session without losing chat history.
+- 🎯 **Interactive Arrow-Key Selector**: Navigate accounts using `↑` / `↓` and press `Enter` to switch and reload in real-time. In `agy` sessions, run `zh ui` to pop up a dedicated floating console window.
+- 🌐 **Full Chinese & English Commands**: Supports both English (`zh switch 1`, `zh add`, `zh whoami`) and Chinese (`zh 切换 1`, `zh 添加`, `zh 状态`, `zh 帮助`) syntax, including Chinese account aliases (e.g. `zh 保存 主账号`).
+- ➕ **One-Click Account Onboarding (`zh add`)**: Automatically clears temporary credentials, triggers browser authentication, captures newly issued OAuth tokens, and saves them to the encrypted local pool within seconds.
+- 🔐 **Native Credential Security**: Integrates directly with Windows Credential Manager (`gemini:antigravity`) and system keyrings. Tokens stay encrypted locally on your machine.
+
+---
+
+## 🖥️ Terminal Preview
 
 ```text
 ┌────────────────────────────────────────────────────────────────┐
-│                     AGY 账号切换中心 (zh)                      │
+│                     AGY Account Center (zh)                    │
 ├────────────────────────────────────────────────────────────────┤
-│  当前活跃: user_a@gmail.com [default]                          │
+│  Active: user_a@gmail.com [default]                            │
 │                                                                │
-│  已保存账号列表:                                               │
-│    [1] default      user_a@gmail.com           ● [当前使用]    │
+│  Saved Accounts:                                               │
+│    [1] default      user_a@gmail.com           ● [Active]      │
 │    [2] work         user_b@gmail.com                           │
-│    [+] 自动添加新账号 (输入 zh add 或 zh 添加)                 │
+│    [+] Auto Add Account (run 'zh add')                         │
 │                                                                │
-│    快捷指令 (全面支持中英文，默认自动重载):                    │
-│    zh <序号/别名>      秒级切换 (例: zh 1 或 zh work)          │
-│    zh 切换 <序号>      中文切换 (例: zh 切换 1)                │
-│    zh 窗口 (zh ui)     唤起方向键独立交互窗口                  │
-│    zh 添加 [别名]      一键自动添加账号 (唤起浏览器登录)       │
-│    zh 保存 <别名>      保存当前账号为指定别名 (支持中文名)     │
-│    zh 重载 (reload)    一键自动重新载入当前会话                │
-│    zh 删除 <别名>      删除指定已保存账号                      │
-│    zh 状态 (whoami)    查看当前账号详细认证信息                │
+│    Quick Commands (Auto-reloads session by default):           │
+│    zh <index/alias>    Instant switch (e.g., zh 1 or zh work)  │
+│    zh switch <index>   Switch account by number                │
+│    zh ui (zh window)   Open interactive arrow-key picker       │
+│    zh add [alias]      Add account via browser login           │
+│    zh save <alias>     Save current active account as alias    │
+│    zh reload           Hot-reload session with context intact  │
+│    zh rm <alias>       Remove account from pool                │
+│    zh whoami           Display active token & quota details    │
 └────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 📦 一键安装 (Installation)
+## 📦 Quick Installation
 
-### 方式一：PowerShell 一键极速安装（推荐）
+### Option 1: PowerShell One-Liner (Recommended for Windows)
 
-在 PowerShell 中直接运行以下命令即可全自动安装并配置环境变量：
+Open PowerShell and execute:
 
 ```powershell
 irm https://raw.githubusercontent.com/ooks37/agy-accounts/main/install.ps1 | iex
 ```
 
-### 方式二：Git 本地克隆安装
+### Option 2: Git Clone
 
 ```bash
 git clone https://github.com/ooks37/agy-accounts.git "$HOME/.gemini/config/plugins/agy-accounts"
-# 将命令快捷方式复制到系统路径
 copy "$HOME/.gemini/config/plugins/agy-accounts/zh.cmd" "$LOCALAPPDATA/agy/bin/zh.cmd"
 copy "$HOME/.gemini/config/plugins/agy-accounts/scripts/account_manager.py" "$LOCALAPPDATA/agy/bin/account_manager.py"
 ```
 
 ---
 
-## 🚀 使用指南 (Usage)
+## 🚀 Usage Guide
 
-在任何终端（CMD / PowerShell）或 `agy` 聊天框内均可直接执行：
+Commands can be invoked directly from your terminal (CMD/PowerShell) or inside the `agy` prompt line (via `!<command>`):
 
-### 1. 秒级切换账号
+### 1. Instant Account Switching
 ```bash
-# 在外部终端：
-zh 1                 # 切换到 1 号账号，自动重载会话
-zh 2                 # 切换到 2 号账号
-zh work              # 按别名切换
-zh 切换 1            # 中文指令切换
-
-# 在 agy 对话框中（使用 ! 执行系统命令）：
-!zh 1
-!zh 2
+zh 1                 # Switch to Account 1 and auto-reload session
+zh 2                 # Switch to Account 2
+zh work              # Switch by alias
+zh switch 1          # Verbose switch syntax
+zh 切换 1            # Chinese command syntax
 ```
 
-### 2. 原生方向键交互选择
+### 2. Interactive Navigation (Arrow Keys)
 ```bash
-zh                   # 在独立终端中打开交互式方向键选择器
-zh ui                # 在 agy 会话内弹出独立方向键选择小窗口
-zh 窗口              # 中文指令
+zh                   # Open interactive picker in external terminal
+zh ui                # Open interactive floating picker window from inside agy
+zh 窗口              # Chinese command syntax
 ```
 
-### 3. 一键添加新账号
+### 3. Add New Accounts
 ```bash
-zh add               # 唤起浏览器登录新账号，自动生成别名
-zh add 工作号        # 登录并指定别名为「工作号」
-zh 添加              # 中文指令
+zh add               # Launch browser to log into a new Google account
+zh add work          # Add new account with alias "work"
+zh 添加 工作号       # Add with Chinese alias
 ```
 
-### 4. 查看当前账号认证状态
+### 4. Account Details & Status
 ```bash
-zh whoami            # 查看当前活跃邮箱、Token 过期时间与鉴权方式
-zh 状态              # 中文指令
+zh whoami            # Check active email, auth method, and token expiration
+zh 状态              # Chinese command syntax
 ```
 
-### 5. 保存与删除账号
+### 5. Session Reload & Management
 ```bash
-zh save 主账号       # 将当前已登录账号保存为别名「主账号」
-zh rm 工作号         # 删除已保存的「工作号」
-zh 删除 测试号       # 中文指令
+zh reload            # Hot reload session while preserving context
+zh save main         # Save current active credentials with alias "main"
+zh rm test           # Remove account "test" from local storage
 ```
 
 ---
 
-## 🛠️ 架构与原理 (Architecture)
+## 🛠️ Architecture & Under the Hood
 
-1. **凭据存储与热切换**：
-   - 账号凭据安全隔离存储于 `~/.gemini/accounts/<别名>.json` 中。
-   - 切换时通过 Win32 API `CredWriteW` 原生原子化写入 Windows 凭据管理器 `gemini:antigravity`，系统状态栏 (`agy-hud`) 瞬间热感知。
-2. **会话接续与重载机制**：
-   - 会话重载时，通过逆序解析 `~/.gemini/antigravity-cli/history.jsonl`，精确提取当前活动会话的 `conversationId`。
-   - 携带 `--conversation <ID>` 参数重启 `agy.exe`，实现**零丢失保留全部会话上下文与历史流**。
-3. **字符对齐引擎**：
-   - 基于 Unicode East Asian Width 标准动态计算中英文字符、符号及 Emoji 宽度，确保跨平台控制台严格等宽对齐。
+1. **Credential Hot-Swapping**:
+   - Stores account credentials in `~/.gemini/accounts/<alias>.json`.
+   - Uses the Win32 API `CredWriteW` for atomic credential updates to `gemini:antigravity`, enabling instant hot-reloading by statusline monitors (such as `agy-hud`).
+2. **Context-Preserving Process Reload**:
+   - Inspects `~/.gemini/antigravity-cli/history.jsonl` in reverse order to extract the current `conversationId`.
+   - Spawns a replacement `agy.exe` instance with `--conversation <ID> --dangerously-skip-permissions -WorkingDirectory <CWD>`, ensuring 100% conversation history and memory continuity.
+3. **Display Alignment Engine**:
+   - Implements Unicode East Asian Width (EAW) calculations to accurately pad full-width CJK characters, ambiguous glyphs, and emojis for consistent border rendering across Windows Terminal, ConEmu, and standard consoles.
 
 ---
 
-## 📄 开源许可 (License)
+## 🤝 Attribution & Acknowledgements
 
-本项目基于 [MIT 协议](LICENSE) 开源。
-欢迎 Star ⭐️ 与提交 PR！
+This project builds upon ideas and designs from the community. Special thanks and attribution to:
+
+- **[pjpv/zcode-switch](https://github.com/pjpv/zcode-switch)**: The core UI layout philosophy, account library storage pattern, and instant switching ergonomics were inspired by `pjpv`'s `zcode-switch` / `Z·SWITCH` architecture.
+- **[lllopic/agy-hud](https://github.com/lllopic/agy-hud)**: The statusline ecosystem and integration hooks that allow real-time awareness of account changes in Antigravity CLI.
+- **[Google Antigravity](https://antigravity.google)**: The powerful agentic AI development platform.
+
+---
+
+## 📄 License
+
+Distributed under the [MIT License](LICENSE).  
+Copyright (c) 2026 ooks37.
