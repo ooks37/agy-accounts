@@ -197,27 +197,34 @@ def print_hud_card():
     styled_add = f"    {C_YELLOW}[+]{C_RESET} 自动添加新账号 (输入 {C_YELLOW}zh add{C_RESET} 或 {C_YELLOW}zh 添加{C_RESET})"
     print(make_card_line(styled_add, raw_add, width))
 
-    print(f"{C_CYAN}│" + " " * inner + f"│{C_RESET}")
-    raw_hdr = "  快捷指令 (全面支持中英文，默认自动重载):"
-    styled_hdr = f"  {C_GRAY}{raw_hdr}{C_RESET}"
+    under_agy, _ = is_under_agy()
+    pfx = "!" if under_agy else ""
+    raw_hdr = "  快捷指令 (在 agy 对话框中必须加 ! 前缀，默认自动重载):" if under_agy else "  快捷指令 (全面支持中英文，默认自动重载):"
+    styled_hdr = f"  {C_YELLOW}{C_BOLD}{raw_hdr}{C_RESET}" if under_agy else f"  {C_GRAY}{raw_hdr}{C_RESET}"
     print(make_card_line(styled_hdr, raw_hdr, width))
 
     shortcuts = [
-        ("zh <序号/别名>", "秒级切换 (例: zh 1 或 zh 主账号)"),
-        ("zh 切换 <序号>", "中文切换 (例: zh 切换 1)"),
-        ("zh 窗口 (zh ui)", "唤起方向键独立交互窗口"),
-        ("zh 添加 [别名]", "一键自动添加账号 (唤起浏览器登录)"),
-        ("zh 保存 <别名>", "保存当前账号为指定别名 (支持中文名)"),
-        ("zh 重载 (reload)", "一键自动重新载入当前会话"),
-        ("zh 删除 <别名>", "删除指定已保存账号"),
-        ("zh 状态 (whoami)", "查看当前账号详细认证信息"),
+        (f"{pfx}zh <序号/别名>", f"秒级切换 (例: {pfx}zh 1 或 {pfx}zh 主账号)"),
+        (f"{pfx}zh 切换 <序号>", f"中文切换 (例: {pfx}zh 切换 1)"),
+        (f"{pfx}zh 窗口 ({pfx}zh ui)", "唤起方向键独立交互窗口"),
+        (f"{pfx}zh 添加 [别名]", "一键自动添加账号 (唤起浏览器登录)"),
+        (f"{pfx}zh 保存 <别名>", "保存当前账号为指定别名 (支持中文名)"),
+        (f"{pfx}zh 重载 (reload)", "一键自动重新载入当前会话"),
+        (f"{pfx}zh 删除 <别名>", "删除指定已保存账号"),
+        (f"{pfx}zh 状态 (whoami)", "查看当前账号详细认证信息"),
     ]
 
     for cmd, desc in shortcuts:
-        padded_cmd = pad_str(cmd, 18, "left")
+        padded_cmd = pad_str(cmd, 21, "left")
         raw_sc = f"    {padded_cmd}  {desc}"
         styled_sc = f"    {C_CYAN}{padded_cmd}{C_RESET}  {desc}"
         print(make_card_line(styled_sc, raw_sc, width))
+
+    if under_agy:
+        tip_raw = "  ★ 重点提示: 在 agy 聊天框内输入必须以 ! 开头执行本地命令"
+        tip_styled = f"  {C_YELLOW}★ 重点提示:{C_RESET} {C_BOLD}在 agy 聊天框内输入必须以 ! 开头执行本地命令{C_RESET}"
+        print(f"{C_CYAN}│" + " " * inner + f"│{C_RESET}")
+        print(make_card_line(tip_styled, tip_raw, width))
 
     print(border_bot)
     print()

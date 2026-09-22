@@ -12,6 +12,14 @@
 
 ---
 
+> [!IMPORTANT]
+> ### ⚠️ Critical: Using Commands Inside `agy` vs External Terminal
+> - **Inside `agy` Chat Prompt (Antigravity CLI)**: You **MUST prefix all commands with `!`** (e.g., `!zh`, `!zh 1`, `!zh ui`, `!zh add`).  
+>   *Why?* The `!` prefix is the Antigravity shell escape operator. It tells `agy` to run the command locally on your machine instead of passing it to the AI model as a conversation prompt. This guarantees **zero-latency (<10ms) execution without consuming any AI tokens**!
+> - **In External Terminals (CMD / PowerShell)**: Run commands directly without `!` (e.g., `zh`, `zh 1`, `zh ui`).
+
+---
+
 ## 💡 Overview
 
 **agy-accounts** (`zh`) is a native, zero-latency multi-account manager and switcher designed specifically for **Google Antigravity CLI (`agy`)**.
@@ -19,18 +27,18 @@
 Switching Google accounts in terminal-based AI workflows typically requires re-authenticating through the browser, losing active conversational state, or relying on LLM tool-calling overhead. **agy-accounts** solves this with:
 1. **Zero-AI Dependency**: Direct local binary execution (<0.01s).
 2. **Context Preservation**: Seamlessly hot-reloads the active session with `--conversation <ID>`, preserving full conversation history, agent memory, and workspace state.
-3. **Dual Interaction Modes**: Direct one-line command switching (`zh 1`, `zh 2`) and native interactive arrow-key selector with popup support (`zh ui`).
+3. **Dual Interaction Modes**: Direct one-line command switching (`!zh 1`, `!zh 2`) and native interactive arrow-key selector with popup support (`!zh ui`).
 4. **Full Internationalization**: Comprehensive English and Chinese command support with East Asian Width (EAW) monospace pixel-perfect table alignment.
 
 ---
 
 ## 🌟 Key Features
 
-- ⚡ **Zero-AI Execution (<10ms)**: Executes natively without querying LLMs or waiting for token generation.
+- ⚡ **Zero-AI Execution (<10ms)**: Executes natively via local shell escape (`!`) without querying LLMs or waiting for token generation.
 - 🔄 **Context-Preserving Auto-Reload**: Automatically hooks into `history.jsonl` to extract active `conversationId`, seamlessly continuing your exact session without losing chat history.
-- 🎯 **Interactive Arrow-Key Selector**: Navigate accounts using `↑` / `↓` and press `Enter` to switch and reload in real-time. In `agy` sessions, run `zh ui` to pop up a dedicated floating console window.
-- 🌐 **Full Chinese & English Commands**: Supports both English (`zh switch 1`, `zh add`, `zh whoami`) and Chinese (`zh 切换 1`, `zh 添加`, `zh 状态`, `zh 帮助`) syntax, including Chinese account aliases (e.g. `zh 保存 主账号`).
-- ➕ **One-Click Account Onboarding (`zh add`)**: Automatically clears temporary credentials, triggers browser authentication, captures newly issued OAuth tokens, and saves them to the encrypted local pool within seconds.
+- 🎯 **Interactive Arrow-Key Selector**: Navigate accounts using `↑` / `↓` and press `Enter` to switch and reload in real-time. In `agy` sessions, run `!zh ui` to pop up a dedicated floating console window.
+- 🌐 **Full Chinese & English Commands**: Supports both English (`!zh switch 1`, `!zh add`, `!zh whoami`) and Chinese (`!zh 切换 1`, `!zh 添加`, `!zh 状态`, `!zh 帮助`) syntax, including Chinese account aliases (e.g. `!zh 保存 主账号`).
+- ➕ **One-Click Account Onboarding (`!zh add`)**: Automatically clears temporary credentials, triggers browser authentication, captures newly issued OAuth tokens, and saves them to the encrypted local pool within seconds.
 - 🔐 **Native Credential Security**: Integrates directly with Windows Credential Manager (`gemini:antigravity`) and system keyrings. Tokens stay encrypted locally on your machine.
 
 ---
@@ -46,7 +54,7 @@ Switching Google accounts in terminal-based AI workflows typically requires re-a
 │  Saved Accounts:                                               │
 │    [1] default      user_a@gmail.com           ● [Active]      │
 │    [2] work         user_b@gmail.com                           │
-│    [+] Auto Add Account (run 'zh add')                         │
+│    [+] Auto Add Account (run 'zh add' / '!zh add')             │
 │                                                                │
 │    Quick Commands (Auto-reloads session by default):           │
 │    zh <index/alias>    Instant switch (e.g., zh 1 or zh work)  │
@@ -57,6 +65,8 @@ Switching Google accounts in terminal-based AI workflows typically requires re-a
 │    zh reload           Hot-reload session with context intact  │
 │    zh rm <alias>       Remove account from pool                │
 │    zh whoami           Display active token & quota details    │
+│                                                                │
+│    * Tip: In agy prompt, prefix commands with ! (!zh 1)        │
 └────────────────────────────────────────────────────────────────┘
 ```
 
@@ -84,71 +94,51 @@ copy "$HOME/.gemini/config/plugins/agy-accounts/scripts/account_manager.py" "$LO
 
 ## 🚀 Usage Guide
 
-Commands can be invoked directly from your terminal (CMD/PowerShell) or inside the `agy` prompt line (via `!<command>`):
-
-### 1. Instant Account Switching
-```bash
-zh 1                 # Switch to Account 1 and auto-reload session
-zh 2                 # Switch to Account 2
-zh work              # Switch by alias
-zh switch 1          # Verbose switch syntax
-zh 切换 1            # Chinese command syntax
-```
-
-### 2. Interactive Navigation (Arrow Keys)
-```bash
-zh                   # Open interactive picker in external terminal
-zh ui                # Open interactive floating picker window from inside agy
-zh 窗口              # Chinese command syntax
-```
-
-### 3. Add New Accounts
-```bash
-zh add               # Launch browser to log into a new Google account
-zh add work          # Add new account with alias "work"
-zh 添加 工作号       # Add with Chinese alias
-```
-
-### 4. Account Details & Status
-```bash
-zh whoami            # Check active email, auth method, and token expiration
-zh 状态              # Chinese command syntax
-```
-
-### 5. Session Reload & Management
-```bash
-zh reload            # Hot reload session while preserving context
-zh save main         # Save current active credentials with alias "main"
-zh rm test           # Remove account "test" from local storage
-```
+| Inside `agy` Chat Prompt (Must prefix with `!`) | External Terminal (CMD / PowerShell) | Description |
+| :--- | :--- | :--- |
+| `!zh 1` or `!zh 2` | `zh 1` / `zh 2` | Instant switch account & auto-reload with context intact |
+| `!zh switch 1` / `!zh 切换 1` | `zh switch 1` / `zh 切换 1` | Switch account by index or alias |
+| `!zh ui` or `!zh 窗口` | `zh ui` / `zh 窗口` | Pop up native floating arrow-key (`↑`/`↓`/`Enter`) picker |
+| `!zh add [alias]` / `!zh 添加` | `zh add [alias]` / `zh 添加` | One-click auto add new account via browser login |
+| `!zh save <alias>` / `!zh 保存` | `zh save <alias>` / `zh 保存` | Save current active login as alias (supports Chinese) |
+| `!zh whoami` / `!zh 状态` | `zh whoami` / `zh 状态` | Show active email, token expiration, and auth method |
+| `!zh reload` / `!zh 重载` | `zh reload` / `zh 重载` | Manually reload session with 100% context preservation |
+| `!zh rm <alias>` / `!zh 删除` | `zh rm <alias>` / `zh 删除` | Remove saved account from storage |
+| `!zh` or `!zh 帮助` | `zh` / `zh help` | Display visual account dashboard |
 
 ---
 
 ## 🇨🇳 中文概述 (Chinese Overview)
 
+> [!IMPORTANT]
+> ### ⚠️ 重要提示：在 `agy` 会话对话框内使用必须加感叹号 `!`
+> - **在 Antigravity CLI (`agy`) 聊天对话框中**：所有命令**必须以感叹号 `!` 开头**（例如输入 `!zh`、`!zh 1`、`!zh ui`、`!zh 添加`、`!zh 状态`）。  
+>   *原理*：`!` 是 Antigravity 官方的系统命令转义符。带 `!` 的命令会直接由本地系统秒级执行，不会发送给大模型，因此**完全不消耗任何 AI Token，实现毫秒级即时响应**！如果直接在输入框输入 `zh 1`（不带 `!`），会被 `agy` 当成普通聊天提示词发给 AI。
+> - **在普通外部终端中（PowerShell / CMD）**：直接输入 `zh`、`zh 1`、`zh ui` 即可，**无需**加 `!`。
+
 ### 💡 为什么需要 agy-accounts？
 在日常使用 **Google Antigravity CLI (`agy`)** 进行高强度 AI 辅助编程时，用户经常需要使用多个 Google 账号（额度号/主力号/工作号）轮流作业。然而官方目前缺少多账号快速热切换机制，传统切换方式需要反复重新网页授权并导致当前的会话上下文（历史聊天、Memory）丢失。
 
 **agy-accounts (`zh`)** 通过以下技术彻底解决痛点：
-- ⚡ **零 AI 响应延迟 (<0.01s)**：纯本地执行，无大模型 Token 损耗，秒级响应。
+- ⚡ **零 AI 响应延迟 (<0.01s)**：配合 `!` 纯本地执行，无大模型 Token 损耗，秒级响应。
 - 🔄 **100% 完整接续会话上下文**：切换后自动读取当前活动的 `conversationId` 并携带 `--conversation <ID>` 唤醒 `agy.exe`，历史对话与状态完全接续，工作不中断。
-- 🎯 **双重交互体验**：既支持极简单行命令（`zh 1` / `zh 2`），又支持终端方向键（`↑`/`↓`）原生交互面板与独立弹窗（`zh ui`）。
-- 🌐 **全链路中文与中英文双语**：中文指令（`zh 切换 1`、`zh 添加`、`zh 状态`、`zh 帮助`）、中文别名（`主账号`、`公司`）全面支持，边框基于 East Asian Width 算法像素级对其，拒绝乱码。
-- ➕ **一键自动添加新账号 (`zh add`)**：自动重置临时凭据并弹出登录，捕获授权后自动写库，10 秒内即可录入新号。
+- 🎯 **双重交互体验**：既支持极简单行命令（`!zh 1` / `!zh 2`），又支持终端方向键（`↑`/`↓`）原生交互面板与独立弹窗（`!zh ui`）。
+- 🌐 **全链路中文与中英文双语**：中文指令（`!zh 切换 1`、`!zh 添加`、`!zh 状态`、`!zh 帮助`）、中文别名（`主账号`、`公司`）全面支持，边框基于 East Asian Width 算法像素级对齐，拒绝乱码。
+- ➕ **一键自动添加新账号 (`!zh add`)**：自动重置临时凭据并弹出登录，捕获授权后自动写库，10 秒内即可录入新号。
 - 🔐 **系统原生钥匙串级安全**：直接与 Windows 凭据管理器 (`gemini:antigravity`) 对接，安全加密存放于本地。
 
 ### ⌨️ 常用中文指令速查表
 
-| 中文指令 | 对应英文指令 | 功能描述 |
+| 在 `agy` 对话框内 (必须加 `!`) | 外部普通终端 (CMD / PowerShell) | 功能描述 |
 | :--- | :--- | :--- |
-| `zh 1` 或 `zh 切换 1` | `zh 1` / `zh switch 1` | 秒级切换到 1 号账号，自动重载并接续上下文 |
-| `zh 窗口` | `zh ui` | 弹出原生方向键（`↑`/`↓`/`Enter`）交互选择小窗口 |
-| `zh 添加 [别名]` | `zh add [alias]` | 一键自动添加账号（唤起浏览器登录并存库） |
-| `zh 保存 <别名>` | `zh save <alias>` | 保存当前活跃账号为指定别名（支持中文） |
-| `zh 状态` | `zh whoami` | 查看当前活跃邮箱、Token 过期时间与鉴权方式 |
-| `zh 重载` | `zh reload` | 一键重新载入当前会话，上下文完整保留 |
-| `zh 删除 <别名>` | `zh rm <alias>` | 删除已保存的指定账号凭据 |
-| `zh 帮助` / `zh 列表` | `zh help` / `zh list` | 查看可视化状态看板与已保存账号列表 |
+| `!zh 1` 或 `!zh 切换 1` | `zh 1` / `zh switch 1` | 秒级切换到 1 号账号，自动重载并接续上下文 |
+| `!zh 窗口` 或 `!zh ui` | `zh ui` / `zh 窗口` | 弹出原生方向键（`↑`/`↓`/`Enter`）交互选择小窗口 |
+| `!zh 添加 [别名]` | `zh add [alias]` / `zh 添加` | 一键自动添加账号（唤起浏览器登录并存库） |
+| `!zh 保存 <别名>` | `zh save <alias>` / `zh 保存` | 保存当前活跃账号为指定别名（支持中文） |
+| `!zh 状态` | `zh whoami` / `zh 状态` | 查看当前活跃邮箱、Token 过期时间与鉴权方式 |
+| `!zh 重载` | `zh reload` / `zh 重载` | 一键重新载入当前会话，上下文完整保留 |
+| `!zh 删除 <别名>` | `zh rm <alias>` / `zh 删除` | 删除已保存的指定账号凭据 |
+| `!zh` 或 `!zh 帮助` | `zh` / `zh help` | 查看可视化状态看板与已保存账号列表 |
 
 ---
 
