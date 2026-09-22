@@ -1,0 +1,9 @@
+{
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+  "name": "agy-accounts",
+  "version": "1.0.0",
+  "description": "Antigravity CLI visual multi-account manager & instant switcher (zh) with auto-reload and context preservation",
+  "author": "ooks37",
+  "repository": "https://github.com/ooks37/agy-accounts",
+  "license": "MIT"
+}
