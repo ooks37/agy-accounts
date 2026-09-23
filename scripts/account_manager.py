@@ -307,7 +307,7 @@ def generate_auto_alias(email):
         i += 1
     return f"{clean_base}_{i}"
 
-def find_agy_pid():
+def is_under_agy():
     kernel32 = ctypes.windll.kernel32
     class PROCESSENTRY32(ctypes.Structure):
         _fields_ = [
@@ -334,15 +334,46 @@ def find_agy_pid():
                 break
     kernel32.CloseHandle(h)
 
-    # 优先沿当前进程树向上查找直接父辈中的 agy 进程
     pid = curr_pid
     while pid in pids and pid != 0:
         ppid, name = pids[pid]
         if 'agy' in name and pid != curr_pid:
-            return pid
+            return True, pid
         pid = ppid
+    return False, None
 
-    # 如果是从独立弹窗或间接启动，扫描系统中所有活动的 agy 实例
+def find_agy_pid():
+    under, pid = is_under_agy()
+    if under and pid:
+        return pid
+
+    # 如果是从独立弹窗或间接启动，扫描系统中活动的 agy 实例
+    curr_pid = ctypes.windll.kernel32.GetCurrentProcessId()
+    kernel32 = ctypes.windll.kernel32
+    class PROCESSENTRY32(ctypes.Structure):
+        _fields_ = [
+            ('dwSize', wintypes.DWORD),
+            ('cntUsage', wintypes.DWORD),
+            ('th32ProcessID', wintypes.DWORD),
+            ('th32DefaultHeapID', ctypes.c_size_t),
+            ('th32ModuleID', wintypes.DWORD),
+            ('cntThreads', wintypes.DWORD),
+            ('th32ParentProcessID', wintypes.DWORD),
+            ('pcPriClassBase', wintypes.LONG),
+            ('dwFlags', wintypes.DWORD),
+            ('szExeFile', ctypes.c_char * 260)
+        ]
+    h = kernel32.CreateToolhelp32Snapshot(2, 0)
+    e = PROCESSENTRY32()
+    e.dwSize = ctypes.sizeof(PROCESSENTRY32)
+    pids = {}
+    if kernel32.Process32First(h, ctypes.byref(e)):
+        while True:
+            pids[e.th32ProcessID] = (e.th32ParentProcessID, e.szExeFile.decode('latin1', errors='ignore').lower())
+            if not kernel32.Process32Next(h, ctypes.byref(e)):
+                break
+    kernel32.CloseHandle(h)
+
     for p, (_, name) in pids.items():
         if name in ('agy.exe', 'agy') and p != curr_pid:
             return p
@@ -392,15 +423,15 @@ def cmd_reload():
     else:
         arg_list = '--continue --dangerously-skip-permissions'
 
-    # 使用 PowerShell 进行毫秒级平滑重载：释放旧进程并秒级接续拉起新会话
+    is_wt = "$true" if os.environ.get("WT_SESSION") else "$false"
     ps_script = f"""
-    Start-Sleep -Milliseconds 500
+    Start-Sleep -Milliseconds 700
     if ({agy_pid} -gt 0) {{
         Stop-Process -Id {agy_pid} -Force -ErrorAction SilentlyContinue
     }}
     Start-Sleep -Milliseconds 300
     $started = $false
-    if (Get-Process -Name "WindowsTerminal" -ErrorAction SilentlyContinue) {{
+    if ({is_wt} -and (Get-Process -Name "WindowsTerminal" -ErrorAction SilentlyContinue)) {{
         try {{
             Start-Process "wt.exe" -ArgumentList "-w 0 nt -d `"{cwd}`" `"{agy_exe}`" {arg_list}" -ErrorAction Stop
             $started = $true
@@ -505,6 +536,9 @@ def cmd_use(target, auto_reload=True):
         return False
 
 def cmd_save(alias):
+    if any(c in r'\/:*?"<>|' for c in alias):
+        print(f"\n{C_YELLOW}[-] 别名不能包含非法文件名字符 (\\/:*?\"<>|){C_RESET}\n")
+        return
     meta, blob = read_current_cred()
     if not blob:
         print(f"\n{C_YELLOW}[-] 当前未检测到登录凭据，请先在 agy 登录。{C_RESET}\n")
@@ -557,6 +591,7 @@ def cmd_login(alias=None):
     save_path = os.path.join(ACCOUNTS_DIR, f"{target_alias}.json")
     with open(save_path, "w", encoding="utf-8") as f:
         f.write(new_blob)
+    sync_oauth_creds_file(new_blob)
 
     print(f"\n{C_GREEN}{C_BOLD}[✓] 新账号登录成功！{C_RESET}")
     print(f"{C_GREEN}[✓] 已存入账号库: [{target_alias}] -> {new_meta['email']}{C_RESET}\n")
@@ -573,12 +608,20 @@ def cmd_remove(target):
             return
 
     path = os.path.join(ACCOUNTS_DIR, f"{alias}.json")
-    if not os.path.exists(path):
-        print(f"\n{C_YELLOW}[-] 账号别名 [{alias}] 不存在。{C_RESET}\n")
-        return
+    alt_path = os.path.join(ALT_ACCOUNTS_DIR, f"{alias}.json")
+    removed = False
+    for p in (path, alt_path):
+        if os.path.exists(p):
+            try:
+                os.remove(p)
+                removed = True
+            except Exception:
+                pass
 
-    os.remove(path)
-    print(f"\n{C_GREEN}[✓] 成功删除账号: [{alias}]{C_RESET}\n")
+    if removed:
+        print(f"\n{C_GREEN}[✓] 成功删除账号: [{alias}]{C_RESET}\n")
+    else:
+        print(f"\n{C_YELLOW}[-] 账号别名 [{alias}] 不存在。{C_RESET}\n")
 
 def cmd_whoami():
     meta, blob = read_current_cred()
@@ -655,41 +698,6 @@ def render_interactive_card_lines(accounts, current_email, options, selected):
     lines.append(make_card_line(f"{C_GRAY}{foot}{C_RESET}", foot, width))
     lines.append(f"{C_CYAN}└" + "─" * inner + f"┘{C_RESET}")
     return lines
-
-def is_under_agy():
-    kernel32 = ctypes.windll.kernel32
-    class PROCESSENTRY32(ctypes.Structure):
-        _fields_ = [
-            ('dwSize', wintypes.DWORD),
-            ('cntUsage', wintypes.DWORD),
-            ('th32ProcessID', wintypes.DWORD),
-            ('th32DefaultHeapID', ctypes.c_size_t),
-            ('th32ModuleID', wintypes.DWORD),
-            ('cntThreads', wintypes.DWORD),
-            ('th32ParentProcessID', wintypes.DWORD),
-            ('pcPriClassBase', wintypes.LONG),
-            ('dwFlags', wintypes.DWORD),
-            ('szExeFile', ctypes.c_char * 260)
-        ]
-    curr_pid = kernel32.GetCurrentProcessId()
-    h = kernel32.CreateToolhelp32Snapshot(2, 0)
-    e = PROCESSENTRY32()
-    e.dwSize = ctypes.sizeof(PROCESSENTRY32)
-    pids = {}
-    if kernel32.Process32First(h, ctypes.byref(e)):
-        while True:
-            pids[e.th32ProcessID] = (e.th32ParentProcessID, e.szExeFile.decode('latin1', errors='ignore').lower())
-            if not kernel32.Process32Next(h, ctypes.byref(e)):
-                break
-    kernel32.CloseHandle(h)
-
-    pid = curr_pid
-    while pid in pids and pid != 0:
-        ppid, name = pids[pid]
-        if 'agy' in name and pid != curr_pid:
-            return True, pid
-        pid = ppid
-    return False, None
 
 def flush_input_buffer():
     try:
@@ -1074,15 +1082,24 @@ def main():
         alias = sys.argv[2] if len(sys.argv) >= 3 else None
         cmd_login(alias)
     # Save
-    elif arg1 in ("save", "保存", "存") and len(sys.argv) >= 3:
-        cmd_save(sys.argv[2])
+    elif arg1 in ("save", "保存", "存"):
+        if len(sys.argv) >= 3:
+            cmd_save(sys.argv[2])
+        else:
+            print(f"\n{C_YELLOW}[!] 请指定要保存的别名，例如: zh 保存 主账号{C_RESET}\n")
     # Use / Switch
-    elif arg1 in ("use", "switch", "切换", "使用", "切") and len(sys.argv) >= 3:
-        no_reload = any(x in sys.argv for x in ("--no-reload", "-n", "--不重载", "--仅凭据"))
-        cmd_use(sys.argv[2], auto_reload=not no_reload)
+    elif arg1 in ("use", "switch", "切换", "使用", "切"):
+        if len(sys.argv) >= 3:
+            no_reload = any(x in sys.argv for x in ("--no-reload", "-n", "--不重载", "--仅凭据"))
+            cmd_use(sys.argv[2], auto_reload=not no_reload)
+        else:
+            print(f"\n{C_YELLOW}[!] 请指定要切换的账号序号或别名，例如: zh 1 或 zh 切换 1{C_RESET}\n")
     # Remove / Delete
-    elif arg1 in ("rm", "remove", "del", "delete", "删除", "移除", "删") and len(sys.argv) >= 3:
-        cmd_remove(sys.argv[2])
+    elif arg1 in ("rm", "remove", "del", "delete", "删除", "移除", "删"):
+        if len(sys.argv) >= 3:
+            cmd_remove(sys.argv[2])
+        else:
+            print(f"\n{C_YELLOW}[!] 请指定要删除的账号序号或别名，例如: zh 删除 测试账号{C_RESET}\n")
     else:
         no_reload = any(x in sys.argv for x in ("--no-reload", "-n", "--不重载", "--仅凭据"))
         if not cmd_use(sys.argv[1], auto_reload=not no_reload):
@@ -1090,3 +1107,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
